@@ -1,0 +1,92 @@
+/*
+  EC_IT143_W3.4_fq.sql
+  Author:Francis Quayson
+  Runtime Estimate: ~3-5 
+  Description: Answers to 8 Business User Questions using AdventureWorks DB
+*/
+
+/* -------------------------------------------------- */
+/* Q1 - Marginal Complexity                           */
+/* Question: Which employees are not working under any manager? */
+-- Assumption: Employees without a ManagerID (NULL in Manager column)
+
+SELECT 'BusinessEntityID', FirstName, LastName
+FROM HumanResources.Employee e
+JOIN Person.Person p ON e.BusinessEntityID = p.BusinessEntityID
+WHERE e.ManagersID IS NULL;
+
+
+/* -------------------------------------------------- */
+/* Q2 - Marginal Complexity                           */
+/* Question: What are the top 5 most expensive products listed in the catalog? */
+
+SELECT TOP 5 Name, ListPrice
+FROM Production.Product
+WHERE ListPrice > 0
+ORDER BY ListPrice DESC;
+
+
+/* -------------------------------------------------- */
+/* Q3 - Moderate Complexity                     
+/* Question: Which employees were hired in the last 5 years? */
+
+SELECT p.FirstName, p.LastName, e.HireDate
+FROM HumanResources.Employee e
+JOIN Person.Person p ON e.BusinessEntityID = p.BusinessEntityID
+WHERE DATEDIFF(YEAR, e.HireDate, GETDATE()) <= 5;
+
+
+/* -------------------------------------------------- */
+/* Q4 - Moderate Complexity                           */
+/* Question: Which salespersons exceeded their assigned sales quota? */
+
+SELECT p.FirstName, p.LastName, s.SalesYTD, sq.SalesQuota
+FROM Sales.SalesPerson s
+JOIN Person.Person p ON s.BusinessEntityID = p.BusinessEntityID
+JOIN Sales.SalesPersonQuotaHistory sq ON s.BusinessEntityID = sq.BusinessEntityID
+WHERE s.SalesYTD > sq.SalesQuota;
+
+
+/* -------------------------------------------------- */
+/* Q5 - Increased Complexity                          */
+/* Question: What is the count of employees grouped by gender? */
+
+SELECT Gender, COUNT(*) AS EmployeeCount
+FROM HumanResources.Employee
+GROUP BY Gender;
+
+
+/* -------------------------------------------------- */
+/* Q6 - Increased Complexity                          */
+/* Question: What are the top 10 most expensive products, and what category does each belong to? */
+
+SELECT TOP 10 p.Name AS ProductName, p.ListPrice, pc.Name AS CategoryName
+FROM Production.Product p
+JOIN Production.ProductSubcategory ps ON p.ProductSubcategoryID = ps.ProductSubcategoryID
+JOIN Production.ProductCategory pc ON ps.ProductCategoryID = pc.ProductCategoryID
+WHERE p.ListPrice > 0
+ORDER BY p.ListPrice DESC;
+
+
+/* -------------------------------------------------- */
+/* Q7 - Increased Complexity                          */
+/* Question: Which employees are currently working in the 'Information Services' department? */
+
+SELECT p.FirstName, p.LastName, d.Name AS Department
+FROM HumanResources.EmployeeDepartmentHistory edh
+JOIN HumanResources.Department d ON edh.DepartmentID = d.DepartmentID
+JOIN HumanResources.Employee e ON edh.BusinessEntityID = e.BusinessEntityID
+JOIN Person.Person p ON e.BusinessEntityID = p.BusinessEntityID
+WHERE d.Name = 'Information Services' AND edh.EndDate IS NULL;
+
+
+/* -------------------------------------------------- */
+/* Q8 - Increased Complexity                          */
+/* Question: Which department has the highest number of employees? */
+
+SELECT TOP 1 d.Name AS Department, COUNT(*) AS EmployeeCount
+FROM HumanResources.EmployeeDepartmentHistory edh
+JOIN HumanResources.Department d ON edh.DepartmentID = d.DepartmentID
+WHERE edh.EndDate IS NULL
+GROUP BY d.Name
+ORDER BY EmployeeCount DESC;
